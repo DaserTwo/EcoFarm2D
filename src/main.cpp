@@ -15,7 +15,7 @@
 #define SPEED 2
 
 int main(){
-	InitWindow(800, 400, "Okno");
+	InitWindow(800, 400, "EcoFarm2D");
 
 	Camera2D camera = {0};
 	camera.zoom = 1.0f;
