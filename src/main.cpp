@@ -18,6 +18,14 @@
 #define SLOT_WIDTH 200
 #define PURPLE_DURATION 300
 
+const char* g_Msgs[3] = {
+	"Message 1",
+	"Message 2",
+	"Message 3"
+};
+
+#define MSG_COUNT (sizeof(g_Msgs) / sizeof(char*))
+
 int main(){
 	InitWindow(800, 400, "EcoFarm2D");
 
@@ -29,6 +37,8 @@ int main(){
 
 	int currentSlot = -1;
 	unsigned int slotTimers[RIGHT_WALL / SLOT_WIDTH] = {0};
+
+	int msgIndex = 0;
 
 	SetTargetFPS(60);
 	while(!WindowShouldClose()){
@@ -84,11 +94,13 @@ int main(){
 			if(slotTimers[i])
 				slotTimers[i]--;
 
+		if(IsKeyReleased(KEY_ENTER)){
+			msgIndex++;
+		}
+
 		BeginDrawing();
 		{
 			ClearBackground(BG_COLOR);
-
-			DrawFPS(10, 10);
 
 			BeginMode2D(camera);
 			{
@@ -108,7 +120,14 @@ int main(){
 				DrawRectanglePro(player, {0, 100}, 0, ColorFromHSV(200, 1, 1));
 			}
 			EndMode2D();
-	
+
+			DrawFPS(10, 10);
+
+			if(msgIndex < MSG_COUNT){
+				DrawRectangle(width - 250, 0, 250, 100, ColorFromHSV(150, 0.8f, 1));
+				DrawText(g_Msgs[msgIndex], width - 225, 10, 30, BLACK);
+				DrawText("Press enter to skipp...", width - 225, 80, 15, GRAY);
+			}
 		}
 		EndDrawing();
 	}
