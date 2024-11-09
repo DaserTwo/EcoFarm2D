@@ -26,6 +26,17 @@ const char* g_Msgs[3] = {
 
 #define MSG_COUNT (sizeof(g_Msgs) / sizeof(char*))
 
+const Color g_Tools[3] = {
+	PURPLE,
+	PINK,
+	RED
+};
+
+#define TOOL_COUNT (sizeof(g_Tools) / sizeof(Color))
+
+static inline void HandleTools(int& idx, size_t toolsCount);
+static inline void DrawToolsRec(Rectangle rec, const Color* tools, size_t toolsCount, int idx);
+
 int main(){
 	InitWindow(800, 400, "EcoFarm2D");
 
@@ -39,6 +50,7 @@ int main(){
 	unsigned int slotTimers[RIGHT_WALL / SLOT_WIDTH] = {0};
 
 	int msgIndex = 0;
+	int toolIndex = -1;
 
 	SetTargetFPS(60);
 	while(!WindowShouldClose()){
@@ -87,7 +99,7 @@ int main(){
 
 		currentSlot = (int)((player.x + player.width - 1) / SLOT_WIDTH);
 
-		if(currentSlot > 0 && IsKeyDown(KEY_F))
+		if(currentSlot > 0 && IsKeyDown(KEY_F) && toolIndex >= 0)
 			slotTimers[currentSlot] = PURPLE_DURATION;
 
 		for(size_t i = 0; i < RIGHT_WALL / SLOT_WIDTH; i++)
@@ -97,6 +109,8 @@ int main(){
 		if(IsKeyReleased(KEY_ENTER)){
 			msgIndex++;
 		}
+
+		HandleTools(toolIndex, TOOL_COUNT);
 
 		BeginDrawing();
 		{
@@ -109,8 +123,8 @@ int main(){
 				for(int i = 200; i < RIGHT_WALL; i += SLOT_WIDTH){
 					int slotIndex = i / SLOT_WIDTH;
 					Color slotColor = (slotIndex == currentSlot)?GREEN:BLANK;
-					if(slotTimers[slotIndex] > 0){
-						slotColor = Fade(PURPLE, (float)slotTimers[slotIndex] / PURPLE_DURATION);
+					if(slotTimers[slotIndex] > 0 && toolIndex >= 0){
+						slotColor = Fade(g_Tools[toolIndex], (float)slotTimers[slotIndex] / PURPLE_DURATION);
 					}
 
 					DrawRectangle(i, 0, SLOT_WIDTH, FLOOR, slotColor);
@@ -128,10 +142,41 @@ int main(){
 				DrawText(g_Msgs[msgIndex], width - 225, 10, 30, BLACK);
 				DrawText("Press enter to skipp...", width - 225, 80, 15, GRAY);
 			}
+
+			DrawToolsRec(CLITERAL(Rectangle){0, (float)height - 30, (float)width, 30}, g_Tools, TOOL_COUNT, toolIndex);
 		}
 		EndDrawing();
 	}
 
 	CloseWindow();
 	return 0;
+}
+
+static inline void HandleTools(int& idx, size_t toolsCount){
+	if(IsKeyReleased(KEY_TAB)){
+		idx = ++idx % toolsCount;
+		return;
+	}
+
+	if(IsKeyReleased(KEY_ZERO)){
+		idx = -1;
+		return;
+	}
+
+	for(size_t i = 0; i < toolsCount && i < 9; i++){
+		if(IsKeyReleased(KEY_ONE + i)){
+			idx = i;
+			return;
+		}
+	}
+}
+
+static inline void DrawToolsRec(Rectangle rec, const Color* tools, size_t toolsCount, int idx){
+	for(size_t i = 0; i< toolsCount; i++){
+		int x = (rec.width - (rec.height * toolsCount)) / 2 + rec.x + (i * rec.height);
+		int w = rec.height - 10;
+		if(idx == i)
+			DrawRectangle(x, rec.y, rec.height, rec.height, GRAY);
+		DrawRectangle(x + 5, rec.y + 5, w, w, tools[i]);
+	}
 }
