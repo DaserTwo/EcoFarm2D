@@ -7,8 +7,7 @@
  * x starts from left.
  * */
 
-#define BLANC_WHITE CLITERAL(Color){ 255, 255, 255, 0 }
-#define BG_COLOR ColorFromHSV(0, 0, 0)
+#define BG_COLOR CLITERAL(Color){100, 150, 255}
 
 #define LEFT_WALL 0
 #define RIGHT_WALL 1600
@@ -46,11 +45,13 @@ int main(){
 	Rectangle player = {50, FLOOR, 100, 100};
 	int yVel = 0;
 
-	int currentSlot = -1;
+	int currentSlot;
 	unsigned int slotTimers[RIGHT_WALL / SLOT_WIDTH] = {0};
 
 	int msgIndex = 0;
 	int toolIndex = -1;
+	
+	Texture2D domek=LoadTexture("assets/domek.png");
 
 	SetTargetFPS(60);
 	while(!WindowShouldClose()){
@@ -97,7 +98,7 @@ int main(){
 		if(camera.target.x > RIGHT_WALL - 800)
 			camera.target.x = RIGHT_WALL - 800;
 
-		currentSlot = (int)((player.x + player.width - 1) / SLOT_WIDTH);
+		currentSlot = (int)((player.x + player.width / 2) / SLOT_WIDTH);
 
 		if(currentSlot > 0 && IsKeyDown(KEY_F) && toolIndex >= 0)
 			slotTimers[currentSlot] = PURPLE_DURATION;
@@ -113,13 +114,15 @@ int main(){
 		HandleTools(toolIndex, TOOL_COUNT);
 
 		BeginDrawing();
-		{
-			ClearBackground(BG_COLOR);
-
-			BeginMode2D(camera);
-			{
-				DrawLine(0, 300, 800, 300, ColorFromHSV(0, 0, 1));
-
+		{  
+			ClearBackground(BG_COLOR);  
+  
+			BeginMode2D(camera);  
+			{                               
+				DrawTextureRec(domek,CLITERAL(Rectangle){0,0,100,200},{0,100},WHITE);
+				DrawLine(0, 300, 800, 300, ColorFromHSV(0, 0, 1)); 
+    
+  
 				for(int i = 200; i < RIGHT_WALL; i += SLOT_WIDTH){
 					int slotIndex = i / SLOT_WIDTH;
 					Color slotColor = (slotIndex == currentSlot)?GREEN:BLANK;

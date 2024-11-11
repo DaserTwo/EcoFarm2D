@@ -18,5 +18,5 @@ $(build)/bin/game: $(out)
 	$(CXX) -o $@ $^ -std=gnu++17 -Wall -Wextra -pedantic -lraylib
 
 $(out): $(build)/bin/%.o: src/%
-	$(CXX) -c $^ -o $@ -std=gnu++17 -Wall -Wextra -pedantic
+	$(CXX) -c $^ -o $@ -std=gnu++17 -Wall -Wextra -pedantic -Iinclude
 
