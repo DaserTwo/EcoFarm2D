@@ -1,57 +1,51 @@
-#include<iostream>
+#include <iostream>
+#include <vector>
+#include <array>
 
 #include <raylib.h>
+
+#include <defs.hpp>
+#include <ui.hpp>
 
 /*
  * y starts from top to bottom of the window.
  * x starts from left.
  * */
 
-#define BG_COLOR CLITERAL(Color){100, 150, 255}
-
-#define LEFT_WALL 0
-#define RIGHT_WALL 1600
-#define FLOOR 300
-#define SPEED 2
-
-#define SLOT_WIDTH 200
-#define PURPLE_DURATION 300
-
-const char* g_Msgs[3] = {
+std::array<const char*, 5> g_Msgs = {
 	"Message 1",
 	"Message 2",
-	"Message 3"
+	"Message 3",
+	"Yo! This is realy\nlooong message!",
+	"And we probably\nNEED a new font!!!"
 };
 
-#define MSG_COUNT (sizeof(g_Msgs) / sizeof(char*))
-
-const Color g_Tools[3] = {
+std::vector<Color> g_Tools = {
 	PURPLE,
 	PINK,
 	RED
 };
 
-#define TOOL_COUNT (sizeof(g_Tools) / sizeof(Color))
-
-static inline void HandleTools(int& idx, size_t toolsCount);
-static inline void DrawToolsRec(Rectangle rec, const Color* tools, size_t toolsCount, int idx);
+static inline void HandleTools(ssize_t& idx, size_t toolsCount);
 
 int main(){
 	InitWindow(800, 400, "EcoFarm2D");
 
-	Camera2D camera = {0};
-	camera.zoom = 1.0f;
+	Camera2D camera = {{0, 0}, {0, 0}, 0, 1.0f};
 
-	Rectangle player = {50, FLOOR, 100, 100};
+	Rectangle player = {50, FLOOR, 50, 50};
 	int yVel = 0;
 
 	int currentSlot;
 	unsigned int slotTimers[RIGHT_WALL / SLOT_WIDTH] = {0};
 
-	int msgIndex = 0;
-	int toolIndex = -1;
-	
-	Texture2D domek=LoadTexture("assets/domek.png");
+	size_t msgIndex = 0;
+	ssize_t toolIndex = -1;
+	unsigned char polution = 0;
+
+	Color bg = {100, 150, 250, 255};
+
+	Texture2D domek = LoadTexture("assets/domek.png");
 
 	SetTargetFPS(60);
 	while(!WindowShouldClose()){
@@ -111,15 +105,19 @@ int main(){
 			msgIndex++;
 		}
 
-		HandleTools(toolIndex, TOOL_COUNT);
+		if(polution < 100 && IsKeyReleased(KEY_P))
+			polution++;
+
+		HandleTools(toolIndex, g_Tools.size());
 
 		BeginDrawing();
-		{  
-			ClearBackground(BG_COLOR);  
+		{
+			bg.r = 100 + polution;
+			ClearBackground(bg); 
   
 			BeginMode2D(camera);  
 			{                               
-				DrawTextureRec(domek,CLITERAL(Rectangle){0,0,100,200},{0,100},WHITE);
+				DrawTextureRec(domek, CLITERAL(Rectangle){0,0,100,200}, {0,100}, WHITE);
 				DrawLine(0, 300, 800, 300, ColorFromHSV(0, 0, 1)); 
     
   
@@ -134,19 +132,17 @@ int main(){
 					DrawLine(i, FLOOR, i, 0, ColorFromHSV(100, 1, 0.5f));
 				}
 
-				DrawRectanglePro(player, {0, 100}, 0, ColorFromHSV(200, 1, 1));
+				DrawRectanglePro(player, {0, player.height}, 0, ColorFromHSV(200, 1, 1));
 			}
 			EndMode2D();
 
-			DrawFPS(10, 10);
+			DrawProgressLabelRec("Polution", CLITERAL(Rectangle){5, 5, 150, 20}, (float)polution / 100.0f, BLUE, WHITE);
+			DrawFPS(5, 60);
 
-			if(msgIndex < MSG_COUNT){
-				DrawRectangle(width - 250, 0, 250, 100, ColorFromHSV(150, 0.8f, 1));
-				DrawText(g_Msgs[msgIndex], width - 225, 10, 30, BLACK);
-				DrawText("Press enter to skipp...", width - 225, 80, 15, GRAY);
-			}
+			if(msgIndex < g_Msgs.size())
+				DrawMessageboxRec(g_Msgs[msgIndex], CLITERAL(Rectangle){(float)width - 250, 0, 250, 100}, MSGBOX_BG, BLACK);
 
-			DrawToolsRec(CLITERAL(Rectangle){0, (float)height - 30, (float)width, 30}, g_Tools, TOOL_COUNT, toolIndex);
+			DrawToolsRec(CLITERAL(Rectangle){0, (float)height - 30, (float)width, 30}, g_Tools, toolIndex);
 		}
 		EndDrawing();
 	}
@@ -155,7 +151,7 @@ int main(){
 	return 0;
 }
 
-static inline void HandleTools(int& idx, size_t toolsCount){
+static inline void HandleTools(ssize_t& idx, size_t toolsCount){
 	if(IsKeyReleased(KEY_TAB)){
 		idx = ++idx % toolsCount;
 		return;
@@ -174,12 +170,4 @@ static inline void HandleTools(int& idx, size_t toolsCount){
 	}
 }
 
-static inline void DrawToolsRec(Rectangle rec, const Color* tools, size_t toolsCount, int idx){
-	for(size_t i = 0; i< toolsCount; i++){
-		int x = (rec.width - (rec.height * toolsCount)) / 2 + rec.x + (i * rec.height);
-		int w = rec.height - 10;
-		if(idx == i)
-			DrawRectangle(x, rec.y, rec.height, rec.height, GRAY);
-		DrawRectangle(x + 5, rec.y + 5, w, w, tools[i]);
-	}
-}
+
