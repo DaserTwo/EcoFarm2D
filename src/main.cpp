@@ -16,12 +16,38 @@
  * x starts from left.
  * */
 
-std::array<const char*, 5> g_Msgs = {
-	"Message 1",
-	"Message 2",
-	"Message 3",
-	"Yo! This is realy\nlooong message!",
-	"And we probably\nNEED a new font!!!"
+std::array<const char*, 18> g_Msgs = {
+	nullptr,
+	"Stosowanie nawozów\nsztucznych poprawia plony,\nale wiąże się z licznymi\nzagrożeniami.",
+	"Zanieczyszczenie wód to\njedno z najpoważniejszych,\ngdzie nadmiar azotu trafia\ndo rzek i jezior.",
+	"Skudkuje to eutrofazją,\nczyli rozwoju toksycznych\nglonów, które zabijają życie\nwodne.",
+	"Wody gruntowe,\nzanieczyszczone azotanami,\nstają się niebezpieczne dla\nludzi i zwierząt.",
+    "Długotrwałe używanie\nnawozów może także\ndegradować glebę.",
+	"Z czasem traci ona\nżyzność, a próchnica i\nmikroflora glebowa zostają\nzniszczone.",
+	"Gleba staje się mniej\nodporna na erozję, a jej\nstruktura ulega osłabieniu.",
+    "Ponadto, nawozy sztuczne\nwpływają na zmiany\nklimatyczne.",
+	"Emitują gazy cieplarniane,\ntakie jak tlenki azotu.",
+	"Stosowanie chemicznych\nśrodków może również\nprowadzić do zaburzeń\nrównowagi ekosystemów.",
+	"A to prowadzi do śmierci\npożytecznych organizmów,\ntakich jak pszczoły.",
+	"Efekty są długoterminowe\ni trudne do odwrócenia.",
+	"Używaj tylko naturalnych\nnawozów i uratuj środowisko!",
+	"Wychoduj 100 zboża.",
+	nullptr,
+	"Gratulacje!\nUdało ci się!",
+	nullptr
+};
+
+std::array<const char*, 2> g_LevelMsgs = {
+    "Witaj na EcoFarm! 🌱\n\n"
+	"Zanim rozpoczniesz swoją przygodę, zapoznaj się z podstawowymi kontrolami:\n\n"
+	"W lub Strzałka w górę – ruszaj się do przodu.\n"
+	"S lub Strzałka w dół – ruszaj się do tyłu.\n"
+	"A lub Strzałka w lewo – poruszaj się w lewo.\n"
+	"D lub Strzałka w prawo – ruszaj się w prawo.\n\n"
+	"Spacja – skocz, aby pokonać przeszkody.\n\n"
+	"Interakcje:\n"
+	"F – interakcja z obiektami, roślinami oraz śmieciami.",
+	"Gratulacje! TODO"
 };
 
 std::array<Slot, RIGHT_WALL / SLOT_WIDTH> g_Slots;
@@ -52,6 +78,7 @@ int main(){
 	int currentSlot;
 
 	size_t msgIndex = 0;
+	size_t levelIndex = 0;
 	ssize_t toolIndex = -1;
 	unsigned char polution = 0;
 
@@ -62,6 +89,8 @@ int main(){
 	for(size_t i = 0; i < g_Slots.size(); i++){
 		g_Slots[i].rec.x = SLOT_WIDTH * i;
 	}
+
+	bool introduceLevel = true;
 
 	SetTargetFPS(60);
 	while(!WindowShouldClose()){
@@ -120,11 +149,21 @@ int main(){
 		}
 
 		if(IsKeyReleased(KEY_ENTER)){
-			msgIndex++;
+			if(introduceLevel){
+				introduceLevel = false;
+				msgIndex++;
+			} else if(msgIndex < g_Msgs.size() && g_Msgs[msgIndex]){
+				msgIndex++;
+			}
 		}
 
 		if(polution < 100 && IsKeyReleased(KEY_P))
 			polution++;
+
+		if(s_WheetCount >= 10/*0*/ && levelIndex == 0){
+			introduceLevel = true;
+			levelIndex++;
+		}
 
 		HandleTools(toolIndex, g_Tools.size());
 
@@ -155,8 +194,11 @@ int main(){
 			DrawProgressLabelRec("Wheet", CLITERAL(Rectangle){5,30, 150, 20}, (float)s_WheetCount / 100.0f, BLUE, WHITE);
 			DrawFPS(5, 60);
 
-			if(msgIndex < g_Msgs.size())
+			if(msgIndex < g_Msgs.size() && g_Msgs[msgIndex])
 				DrawMessageboxRec(g_Msgs[msgIndex], CLITERAL(Rectangle){(float)width - 250, 0, 250, 100}, MSGBOX_BG, BLACK);
+
+			if(introduceLevel && levelIndex < g_LevelMsgs.size())
+				DrawMessageboxRec(g_LevelMsgs[levelIndex], {50, 70, (float)width - 100, (float)height - 140}, MSGBOX_BG, BLACK);
 
 			DrawToolsRec(CLITERAL(Rectangle){0, (float)height - 30, (float)width, 30}, g_Tools, toolIndex);
 		}
