@@ -4,7 +4,11 @@
 
 #include <raylib.h>
 
+#include <mywrap.hpp>
+
 #include <defs.hpp>
+#include <structs.hpp>
+#include <assets.hpp>
 #include <ui.hpp>
 
 /*
@@ -20,24 +24,32 @@ std::array<const char*, 5> g_Msgs = {
 	"And we probably\nNEED a new font!!!"
 };
 
-std::vector<Color> g_Tools = {
-	PURPLE,
-	PINK,
-	RED
+std::array<Slot, RIGHT_WALL / SLOT_WIDTH> g_Slots;
+
+std::function<void(Slot&)> useTool(SlotObject obj, size_t time);
+
+void toolHarvest(Slot& slot);
+
+std::vector<Tool> g_Tools = {
+	{GREEN, toolHarvest},
+	{PURPLE, useTool(SlotObject::WHEET, 500)},
+	{RED, useTool(SlotObject::SAPLING, 100)},
+	{BLUE, nullptr}
 };
 
 static inline void HandleTools(ssize_t& idx, size_t toolsCount);
 
+static unsigned int s_WheetCount = 0;
 int main(){
 	InitWindow(800, 400, "EcoFarm2D");
+	LoadAssets();
 
 	Camera2D camera = {{0, 0}, {0, 0}, 0, 1.0f};
 
-	Rectangle player = {50, FLOOR, 50, 50};
+	Rectangle player = {50, 400 - FLOOR, 50, 50};
 	int yVel = 0;
 
 	int currentSlot;
-	unsigned int slotTimers[RIGHT_WALL / SLOT_WIDTH] = {0};
 
 	size_t msgIndex = 0;
 	ssize_t toolIndex = -1;
@@ -45,7 +57,11 @@ int main(){
 
 	Color bg = {100, 150, 250, 255};
 
-	Texture2D domek = LoadTexture("assets/domek.png");
+	MyTexture& house = g_Assets[0];
+
+	for(size_t i = 0; i < g_Slots.size(); i++){
+		g_Slots[i].rec.x = SLOT_WIDTH * i;
+	}
 
 	SetTargetFPS(60);
 	while(!WindowShouldClose()){
@@ -59,15 +75,15 @@ int main(){
 			player.x -= SPEED;
 
 		if(IsKeyDown(KEY_SPACE)){
-			if(!yVel && player.y == FLOOR)
+			if(!yVel && player.y == height - FLOOR)
 				yVel = 50;
 		}
 
 		if(player.x < LEFT_WALL)
 			player.x = LEFT_WALL;
 
-		if(player.x > RIGHT_WALL - 100)
-			player.x = RIGHT_WALL - 100;
+		if(player.x > RIGHT_WALL - player.width)
+			player.x = RIGHT_WALL - player.width;
 
 		if(yVel > 0){
 			player.y -= SPEED;
@@ -76,8 +92,8 @@ int main(){
 			player.y += SPEED;
 		}
 
-		if(player.y > FLOOR)
-			player.y = FLOOR;
+		if(player.y > height - FLOOR)
+			player.y = height - FLOOR;
 
 		int d = (camera.target.x + 400 - player.x);
 
@@ -89,17 +105,19 @@ int main(){
 		if(camera.target.x < LEFT_WALL)
 			camera.target.x = LEFT_WALL;
 
-		if(camera.target.x > RIGHT_WALL - 800)
-			camera.target.x = RIGHT_WALL - 800;
+		if(camera.target.x > RIGHT_WALL - width)
+			camera.target.x = RIGHT_WALL - width;
 
 		currentSlot = (int)((player.x + player.width / 2) / SLOT_WIDTH);
 
 		if(currentSlot > 0 && IsKeyDown(KEY_F) && toolIndex >= 0)
-			slotTimers[currentSlot] = PURPLE_DURATION;
+			if(g_Tools[toolIndex].callback)
+				g_Tools[toolIndex].callback(g_Slots[currentSlot]);
 
-		for(size_t i = 0; i < RIGHT_WALL / SLOT_WIDTH; i++)
-			if(slotTimers[i])
-				slotTimers[i]--;
+		for(size_t i = 0; i < g_Slots.size(); i++){
+			if(g_Slots[i].timer)
+				g_Slots[i].timer--;
+		}
 
 		if(IsKeyReleased(KEY_ENTER)){
 			msgIndex++;
@@ -117,19 +135,16 @@ int main(){
   
 			BeginMode2D(camera);  
 			{                               
-				DrawTextureRec(domek, CLITERAL(Rectangle){0,0,100,200}, {0,100}, WHITE);
+				DrawTextureRec(*house, CLITERAL(Rectangle){0, 0, house.frame.x, house.frame.y}, {0,100}, WHITE);
 				DrawLine(0, 300, 800, 300, ColorFromHSV(0, 0, 1)); 
     
-  
-				for(int i = 200; i < RIGHT_WALL; i += SLOT_WIDTH){
-					int slotIndex = i / SLOT_WIDTH;
-					Color slotColor = (slotIndex == currentSlot)?GREEN:BLANK;
-					if(slotTimers[slotIndex] > 0 && toolIndex >= 0){
-						slotColor = Fade(g_Tools[toolIndex], (float)slotTimers[slotIndex] / PURPLE_DURATION);
-					}
+				for(auto& slot: g_Slots){
+					if(slot.object == SlotObject::EMPTY)
+						continue;
 
-					DrawRectangle(i, 0, SLOT_WIDTH, FLOOR, slotColor);
-					DrawLine(i, FLOOR, i, 0, ColorFromHSV(100, 1, 0.5f));
+					slot.rec.height = height - FLOOR;
+
+					DrawSlot(slot);
 				}
 
 				DrawRectanglePro(player, {0, player.height}, 0, ColorFromHSV(200, 1, 1));
@@ -137,6 +152,7 @@ int main(){
 			EndMode2D();
 
 			DrawProgressLabelRec("Polution", CLITERAL(Rectangle){5, 5, 150, 20}, (float)polution / 100.0f, BLUE, WHITE);
+			DrawProgressLabelRec("Wheet", CLITERAL(Rectangle){5,30, 150, 20}, (float)s_WheetCount / 100.0f, BLUE, WHITE);
 			DrawFPS(5, 60);
 
 			if(msgIndex < g_Msgs.size())
@@ -170,4 +186,28 @@ static inline void HandleTools(ssize_t& idx, size_t toolsCount){
 	}
 }
 
+void toolHarvest(Slot& slot){
+	if(slot.timer != 0 || slot.object == SlotObject::EMPTY)
+		return;
 
+	switch(slot.object){
+		case SlotObject::WHEET:
+		{
+			s_WheetCount++;
+		} break;
+		default:
+			break;
+	}
+
+	slot.object = SlotObject::EMPTY;
+}
+
+std::function<void(Slot&)> useTool(SlotObject obj, size_t time){
+	return [obj, time](Slot& slot){
+		if(slot.object != SlotObject::EMPTY)
+			return;
+
+		slot.object = obj;
+		slot.timer = time;
+	};
+}
