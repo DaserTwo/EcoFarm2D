@@ -38,16 +38,17 @@ std::array<const char*, 18> g_Msgs = {
 };
 
 std::array<const char*, 2> g_LevelMsgs = {
-    "Witaj na EcoFarm! 🌱\n\n"
-	"Zanim rozpoczniesz swoją przygodę, zapoznaj się z podstawowymi kontrolami:\n\n"
-	"W lub Strzałka w górę – ruszaj się do przodu.\n"
-	"S lub Strzałka w dół – ruszaj się do tyłu.\n"
-	"A lub Strzałka w lewo – poruszaj się w lewo.\n"
-	"D lub Strzałka w prawo – ruszaj się w prawo.\n\n"
-	"Spacja – skocz, aby pokonać przeszkody.\n\n"
-	"Interakcje:\n"
-	"F – interakcja z obiektami, roślinami oraz śmieciami.",
-	"Gratulacje! TODO"
+    "Witaj na EcoFarm! 🌱\n\n
+	Zanim rozpoczniesz swoją przygodę, zapoznaj się z podstawowymi kontrolami:\n\n
+	A – poruszaj się w lewo.\n
+	D – poruszaj się w prawo.\n
+	Spacja – skok, do pokonywania przeszkód.\n
+	F – interakcja z obiektami, roślinami i śmieciami.\n
+	1-9 – wybór narzędzi (od 1 do 9).\n
+	Tab – szybki dostęp do narzędzi.\n
+	0 – wyłączenie narzędzia.\n
+	Teraz jesteś gotowy do działania! 🌿 Czas na odkrywanie, dbanie o farmę i ratowanie planety!\n
+	\nPowodzenia! 🌍✨"
 };
 
 std::array<Slot, RIGHT_WALL / SLOT_WIDTH> g_Slots;
