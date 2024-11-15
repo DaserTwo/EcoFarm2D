@@ -38,17 +38,17 @@ std::array<const char*, 18> g_Msgs = {
 };
 
 std::array<const char*, 2> g_LevelMsgs = {
-    "Witaj na EcoFarm! 🌱\n\n
-	Zanim rozpoczniesz swoją przygodę, zapoznaj się z podstawowymi kontrolami:\n\n
-	A – poruszaj się w lewo.\n
-	D – poruszaj się w prawo.\n
-	Spacja – skok, do pokonywania przeszkód.\n
-	F – interakcja z obiektami, roślinami i śmieciami.\n
-	1-9 – wybór narzędzi (od 1 do 9).\n
-	Tab – szybki dostęp do narzędzi.\n
-	0 – wyłączenie narzędzia.\n
-	Teraz jesteś gotowy do działania! 🌿 Czas na odkrywanie, dbanie o farmę i ratowanie planety!\n
-	\nPowodzenia! 🌍✨"
+    "Witaj na EcoFarm! 🌱\n\n"
+	"Zanim rozpoczniesz swoją przygodę, zapoznaj się z podstawowymi kontrolami:\n\n"
+	"A – poruszaj się w lewo.\n"
+	"D – poruszaj się w prawo.\n"
+	"Spacja – skok, do pokonywania przeszkód.\n"
+	"F – interakcja z obiektami, roślinami i śmieciami.\n"
+	"1-9 – wybór narzędzi (od 1 do 9).\n"
+	"Tab – szybki dostęp do narzędzi.\n"
+	"0 – wyłączenie narzędzia.\n"
+	"Teraz jesteś gotowy do działania! 🌿 Czas na odkrywanie, dbanie o farmę i ratowanie planety!\n\n"
+	"Powodzenia! 🌍✨"
 };
 
 std::array<Slot, RIGHT_WALL / SLOT_WIDTH> g_Slots;
@@ -90,6 +90,7 @@ int main(){
 
 	MyTexture& house = g_Assets[0];
 	MyTexture& playerTex = g_Assets[2];
+	MyTexture& grass = g_Assets[3];
 
 	for(size_t i = 0; i < g_Slots.size(); i++){
 		g_Slots[i].rec.x = SLOT_WIDTH * i;
@@ -192,8 +193,8 @@ int main(){
   
 			BeginMode2D(camera);  
 			{                               
-				DrawTextureRec(*house, CLITERAL(Rectangle){0, 0, house.frame.x, house.frame.y}, {0,100}, WHITE);
-				DrawLine(0, 300, 800, 300, ColorFromHSV(0, 0, 1)); 
+				DrawTextureRec(*house, {0, 0, house.frame.x, house.frame.y}, {0,100}, WHITE);
+				DrawTextureRec(*grass, {0, 0, (float)width, grass.frame.y}, {0, (float)height - FLOOR}, WHITE);
     
 				for(auto& slot: g_Slots){
 					if(slot.object == SlotObject::EMPTY)
@@ -204,7 +205,6 @@ int main(){
 					DrawSlot(slot);
 				}
 
-				//DrawRectanglePro(player, {0, player.height}, 0, ColorFromHSV(200, 1, 1));
 				DrawTextureRec(*playerTex, {player.width * playerTexIndex, 0, player.width * playerOrientation, player.height}, {player.x, player.y - player.height}, WHITE);
 			}
 			EndMode2D();
