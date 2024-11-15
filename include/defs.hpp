@@ -4,7 +4,7 @@
 #define LEFT_WALL 0
 #define RIGHT_WALL 2000
 #define SLOT_WIDTH 200
-#define FLOOR 100
+#define FLOOR 75
 #define SPEED 2
 
 // Colors
