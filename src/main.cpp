@@ -69,6 +69,7 @@ static inline void PlayerGo(int& tex);
 
 static unsigned int s_WheetCount = 0;
 int main(){
+	SetWindowState(FLAG_WINDOW_RESIZABLE);
 	InitWindow(800, 400, "EcoFarm2D");
 	LoadAssets();
 
@@ -193,8 +194,8 @@ int main(){
   
 			BeginMode2D(camera);  
 			{                               
-				DrawTextureRec(*house, {0, 0, house.frame.x, house.frame.y}, {0,100}, WHITE);
-				DrawTextureRec(*grass, {0, 0, (float)width, grass.frame.y}, {0, (float)height - FLOOR}, WHITE);
+				DrawTextureRec(*house, {0, 0, house.frame.x, house.frame.y}, {0,(float)height - FLOOR - house.frame.y}, WHITE);
+				DrawTextureRec(*grass, {0, 0, RIGHT_WALL, grass.frame.y}, {0, (float)height - FLOOR}, WHITE);
     
 				for(auto& slot: g_Slots){
 					if(slot.object == SlotObject::EMPTY)
