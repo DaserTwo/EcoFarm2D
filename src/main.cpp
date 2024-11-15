@@ -64,6 +64,7 @@ std::vector<Tool> g_Tools = {
 };
 
 static inline void HandleTools(ssize_t& idx, size_t toolsCount);
+static inline void PlayerGo(int& tex);
 
 static unsigned int s_WheetCount = 0;
 int main(){
@@ -72,7 +73,9 @@ int main(){
 
 	Camera2D camera = {{0, 0}, {0, 0}, 0, 1.0f};
 
-	Rectangle player = {50, 400 - FLOOR, 50, 50};
+	Rectangle player = {50, 400 - FLOOR, 25, 50};
+	int playerOrientation = 1;
+	int playerTexIndex = 0;
 	int yVel = 0;
 
 	int currentSlot;
@@ -85,6 +88,7 @@ int main(){
 	Color bg = {100, 150, 250, 255};
 
 	MyTexture& house = g_Assets[0];
+	MyTexture& playerTex = g_Assets[2];
 
 	for(size_t i = 0; i < g_Slots.size(); i++){
 		g_Slots[i].rec.x = SLOT_WIDTH * i;
@@ -97,11 +101,22 @@ int main(){
 		int width = GetScreenWidth();
 		int height = GetScreenHeight();
 
-		if(IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT))
+		bool goRight = IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT);
+		if(goRight){
 			player.x += SPEED;
+			PlayerGo(playerTexIndex);
+			playerOrientation = 1;
+		}
 
-		if(IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT))
+		if(IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)){
 			player.x -= SPEED;
+			if(goRight){
+				playerTexIndex = 0;
+			} else{
+				PlayerGo(playerTexIndex);
+				playerOrientation = -1;
+			}
+		}
 
 		if(IsKeyDown(KEY_SPACE)){
 			if(!yVel && player.y == height - FLOOR)
@@ -121,9 +136,11 @@ int main(){
 			player.y += SPEED;
 		}
 
-		if(player.y > height - FLOOR)
+		if(player.y >= height - FLOOR)
 			player.y = height - FLOOR;
-
+		else
+			playerTexIndex = 3;
+		
 		int d = (camera.target.x + 400 - player.x);
 
 		if(d > 200)
@@ -186,12 +203,13 @@ int main(){
 					DrawSlot(slot);
 				}
 
-				DrawRectanglePro(player, {0, player.height}, 0, ColorFromHSV(200, 1, 1));
+				//DrawRectanglePro(player, {0, player.height}, 0, ColorFromHSV(200, 1, 1));
+				DrawTextureRec(*playerTex, {player.width * playerTexIndex, 0, player.width * playerOrientation, player.height}, {player.x, player.y - player.height}, WHITE);
 			}
 			EndMode2D();
 
-			DrawProgressLabelRec("Polution", CLITERAL(Rectangle){5, 5, 150, 20}, (float)polution / 100.0f, BLUE, WHITE);
-			DrawProgressLabelRec("Wheet", CLITERAL(Rectangle){5,30, 150, 20}, (float)s_WheetCount / 100.0f, BLUE, WHITE);
+			DrawProgressLabelRec("Zanieczyszczenie", CLITERAL(Rectangle){5, 5, 150, 20}, (float)polution / 100.0f, BLUE, WHITE);
+			DrawProgressLabelRec("Zborze", CLITERAL(Rectangle){5,30, 150, 20}, (float)s_WheetCount / 100.0f, BLUE, WHITE);
 			DrawFPS(5, 60);
 
 			if(msgIndex < g_Msgs.size() && g_Msgs[msgIndex])
@@ -252,4 +270,16 @@ std::function<void(Slot&)> useTool(SlotObject obj, size_t time){
 		slot.object = obj;
 		slot.timer = time;
 	};
+}
+
+static inline void PlayerGo(int& tex){
+	static float time;
+	time += GetFrameTime();
+	if(time > 0.25f){
+		if(!tex)
+			tex = 1;
+		else
+			tex = tex % 2 + 1;
+		time -= 0.25f;
+	}
 }
